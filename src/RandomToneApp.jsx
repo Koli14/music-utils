@@ -1,39 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-
-const NOTES = [
-  { name: 'E2', freq: 82.41 },
-  { name: 'F2', freq: 87.31 },
-  { name: 'F#2', freq: 92.5 },
-  { name: 'G2', freq: 98.0 },
-  { name: 'G#2', freq: 103.83 },
-  { name: 'A2', freq: 110.0 },
-  { name: 'A#2', freq: 116.54 },
-  { name: 'B2', freq: 123.47 },
-  { name: 'C3', freq: 130.81 },
-  { name: 'C#3', freq: 138.59 },
-  { name: 'D3', freq: 146.83 },
-  { name: 'D#3', freq: 155.56 },
-  { name: 'E3', freq: 164.81 },
-  { name: 'F3', freq: 174.61 },
-  { name: 'F#3', freq: 185.0 },
-  { name: 'G3', freq: 196.0 },
-  { name: 'G#3', freq: 207.65 },
-  { name: 'A3', freq: 220.0 },
-  { name: 'A#3', freq: 233.08 },
-  { name: 'B3', freq: 246.94 },
-  { name: 'C4', freq: 261.63 },
-  { name: 'C#4', freq: 277.18 },
-  { name: 'D4', freq: 293.66 },
-  { name: 'D#4', freq: 311.13 },
-  { name: 'E4', freq: 329.63 },
-  { name: 'F4', freq: 349.23 },
-  { name: 'F#4', freq: 369.99 },
-  { name: 'G4', freq: 392.0 },
-]
-
-function isHalfTone(noteName) {
-  return noteName.includes('#')
-}
+import { NOTES, isHalfTone } from './musicConstants'
+import { getNoteRange, playTone, stopTone } from './musicUtils'
 
 export default function RandomToneApp() {
   const [duration, setDuration] = useState(3)
@@ -46,75 +13,31 @@ export default function RandomToneApp() {
   const audioCtxRef = useRef(null)
   const oscRef = useRef(null)
 
-  const getNoteRange = () => {
-    const allNotes = NOTES.filter(
-      note => includeHalftones || !isHalfTone(note.name)
-    )
-    const fromIdx = allNotes.findIndex(n => n.name === fromNote)
-    const toIdx = allNotes.findIndex(n => n.name === toNote)
-    if (fromIdx === -1 || toIdx === -1 || fromIdx > toIdx) return []
-    return allNotes.slice(fromIdx, toIdx + 1)
-  }
+  const getNotes = () =>
+    getNoteRange(NOTES, fromNote, toNote, includeHalftones, isHalfTone)
 
-  const stopTone = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-    if (oscRef.current) {
-      oscRef.current.stop()
-      oscRef.current.disconnect()
-      oscRef.current = null
-    }
-    if (audioCtxRef.current) {
-      audioCtxRef.current.close()
-      audioCtxRef.current = null
-    }
-  }
-
-  const playTone = (note, durationMs) => {
-    // Always stop previous sound before starting a new one
-    stopTone()
-    setToneDisplay(`Current Tone: ${note.name}`)
-    setLastTone(note)
-    // Create a new AudioContext and Oscillator for every play
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const osc = ctx.createOscillator()
-    osc.type = 'sine'
-    osc.frequency.value = note.freq
-    osc.connect(ctx.destination)
-    osc.start()
-    audioCtxRef.current = ctx
-    oscRef.current = osc
-    timeoutRef.current = setTimeout(() => {
-      osc.stop()
-      ctx.close()
-      oscRef.current = null
-      audioCtxRef.current = null
-      timeoutRef.current = null
-    }, durationMs * 1000)
-  }
+  // Use playTone/stopTone from utils
 
   const playRandomTone = () => {
-    const notes = getNoteRange()
+    const notes = getNotes()
     if (notes.length === 0) return
     const idx = Math.floor(Math.random() * notes.length)
     const randomNote = notes[idx]
-    playTone(randomNote, duration)
+    setToneDisplay(`Current Tone: ${randomNote.name}`)
+    setLastTone(randomNote)
+    playTone(randomNote, duration, { audioCtxRef, oscRef, timeoutRef })
   }
 
   useEffect(() => {
     const handleKeyDown = e => {
       if (e.code === 'Enter') {
-        stopTone()
+        stopTone({ audioCtxRef, oscRef, timeoutRef })
         playRandomTone()
       } else if (e.code === 'Space') {
         if (timeoutRef.current) {
-          // If a tone is playing, stop it
-          stopTone()
+          stopTone({ audioCtxRef, oscRef, timeoutRef })
         } else if (lastTone) {
-          // If nothing is playing, play last tone
-          playTone(lastTone, duration)
+          playTone(lastTone, duration, { audioCtxRef, oscRef, timeoutRef })
         }
       }
     }
@@ -124,7 +47,7 @@ export default function RandomToneApp() {
     }
   })
 
-  const notes = NOTES.filter(note => includeHalftones || !isHalfTone(note.name))
+  const notes = getNotes()
 
   return (
     <div className='bg-gray-800 rounded-xl shadow-xl max-w-md mx-auto mt-12 p-8'>
@@ -191,9 +114,34 @@ export default function RandomToneApp() {
       >
         {toneDisplay}
       </p>
+      <div className='flex justify-center gap-4 mb-4'>
+        <button
+          className='bg-yellow-300 text-gray-900 font-bold px-4 py-2 rounded shadow hover:bg-yellow-400 transition disabled:opacity-50'
+          onClick={e => {
+            e.preventDefault()
+            playRandomTone()
+          }}
+        >
+          New Tone (Enter)
+        </button>
+        <button
+          className='bg-yellow-300 text-gray-900 font-bold px-4 py-2 rounded shadow hover:bg-yellow-400 transition disabled:opacity-50'
+          onClick={e => {
+            e.preventDefault()
+            if (timeoutRef.current) {
+              stopTone({ audioCtxRef, oscRef, timeoutRef })
+            } else if (lastTone) {
+              playTone(lastTone, duration, { audioCtxRef, oscRef, timeoutRef })
+            }
+          }}
+        >
+          Play/Stop (Space)
+        </button>
+      </div>
       <p className='text-gray-400 text-center'>
-        Press the <span className='font-bold'>Spacebar</span> to repeat the last
-        tone or <span className='font-bold'>Enter</span> to play a new tone.
+        Press the <span className='font-bold'>Spacebar</span> to repeat/stop the
+        last tone or <span className='font-bold'>Enter</span> to play a new
+        tone.
       </p>
     </div>
   )
