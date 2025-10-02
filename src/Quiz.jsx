@@ -21,7 +21,6 @@ function loadStats() {
 function saveStats(stats) {
   localStorage.setItem(QUIZ_STATS_KEY, JSON.stringify(stats))
 }
-import { NOTES, isHalfTone } from './musicConstants'
 import { getNoteRange, playTone } from './musicUtils'
 
 export default function Quiz() {
@@ -38,8 +37,7 @@ export default function Quiz() {
   const audioCtxRef = useRef(null)
   const oscRef = useRef(null)
 
-  const getNotes = () =>
-    getNoteRange(NOTES, fromNote, toNote, includeHalftones, isHalfTone)
+  const getNotes = () => getNoteRange(includeHalftones, fromNote, toNote)
 
   // Use playTone/stopTone from utils
 
@@ -127,8 +125,6 @@ export default function Quiz() {
     saveStats(reset)
   }
 
-  const notes = getNotes()
-
   return (
     <div className='bg-gray-800 rounded-xl shadow-xl max-w-md mx-auto mt-12 p-8'>
       <QuizStats stats={stats} onReset={handleResetStats} />
@@ -144,7 +140,6 @@ export default function Quiz() {
         setToNote={setToNote}
         includeHalftones={includeHalftones}
         setIncludeHalftones={setIncludeHalftones}
-        notes={notes}
       />
       <QuizToneControls
         onNewTone={() => playRandomTone(true)}

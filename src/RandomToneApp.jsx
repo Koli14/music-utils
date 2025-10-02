@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { NOTES, isHalfTone } from './musicConstants'
 import { getNoteRange, playTone, stopTone } from './musicUtils'
 
 export default function RandomToneApp() {
@@ -13,8 +12,7 @@ export default function RandomToneApp() {
   const audioCtxRef = useRef(null)
   const oscRef = useRef(null)
 
-  const getNotes = () =>
-    getNoteRange(NOTES, fromNote, toNote, includeHalftones, isHalfTone)
+  const getNotes = () => getNoteRange(includeHalftones, fromNote, toNote)
 
   // Use playTone/stopTone from utils
 
@@ -47,7 +45,7 @@ export default function RandomToneApp() {
     }
   })
 
-  const notes = getNotes()
+  const notes = getNoteRange()
 
   return (
     <div className='bg-gray-800 rounded-xl shadow-xl max-w-md mx-auto mt-12 p-8'>

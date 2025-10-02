@@ -1,4 +1,5 @@
 import React from 'react'
+import { getNoteRange } from './musicUtils'
 
 export default function QuizSettings({
   duration,
@@ -9,8 +10,8 @@ export default function QuizSettings({
   setToNote,
   includeHalftones,
   setIncludeHalftones,
-  notes,
 }) {
+  const notes = getNoteRange()
   return (
     <form
       id='settings'

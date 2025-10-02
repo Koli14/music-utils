@@ -1,4 +1,4 @@
-// src/musicUtils.js
+import { NOTES, isHalfTone } from './musicConstants'
 
 /**
  * Returns a filtered and sliced array of notes based on range and halftone inclusion.
@@ -10,13 +10,11 @@
  * @returns {Array} - The filtered note range.
  */
 export function getNoteRange(
-  notes,
-  fromNote,
-  toNote,
-  includeHalftones,
-  isHalfTone
+  includeHalftones = false,
+  fromNote = 'E2',
+  toNote = 'G4'
 ) {
-  const allNotes = notes.filter(
+  const allNotes = NOTES.filter(
     note => includeHalftones || !isHalfTone(note.name)
   )
   const fromIdx = allNotes.findIndex(n => n.name === fromNote)
