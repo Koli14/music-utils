@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import RandomToneApp from './RandomToneApp'
 import Quiz from './Quiz'
+import RandomJazzChord from './RandomJazzChord'
 import './App.css'
 
 function App() {
@@ -31,10 +32,26 @@ function App() {
           >
             Random Tone
           </button>
+          <button
+            className={`w-full text-left px-8 py-3 rounded-lg font-bold transition-colors duration-150 border-l-4 ${
+              page === 'random-tone'
+                ? 'bg-yellow-300 text-gray-800 border-yellow-400 shadow-md'
+                : 'bg-transparent text-yellow-300 border-transparent hover:bg-yellow-300 hover:text-gray-800 hover:border-yellow-400'
+            }`}
+            onClick={() => setPage('random-jazz-chord')}
+          >
+            Random Jazz Chord
+          </button>
         </nav>
       </aside>
       <main className='flex-1 m-2'>
-        {page === 'random-tone' ? <RandomToneApp /> : <Quiz />}
+        {page === 'random-tone' ? (
+          <RandomToneApp />
+        ) : page === 'random-jazz-chord' ? (
+          <RandomJazzChord />
+        ) : (
+          <Quiz />
+        )}
       </main>
     </div>
   )
