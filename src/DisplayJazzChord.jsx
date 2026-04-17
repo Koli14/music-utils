@@ -103,7 +103,7 @@ export default function DisplayJazzChord() {
       </div>
 
       <p className='text-gray-400 text-center mt-6 text-sm'>
-        Select a root, quality, and extension, then show the chord diagram.
+        Select a root, quality, and extension, then check the chord diagram.
       </p>
     </div>
   )
