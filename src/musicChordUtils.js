@@ -107,6 +107,20 @@ function get5thStringVoicing(fret, type, ext) {
   }
 }
 
+export function getChordBySelection(root, type, ext) {
+  const chordName = root + type.label + (ext.label ? ' ' + ext.label : '')
+  const fret6 = rootToFret6[root]
+  const fret5 = rootToFret5[root]
+  const use6 = fret6 <= fret5
+
+  let diagram = use6
+    ? get6thStringVoicing(fret6, type, ext)
+    : get5thStringVoicing(fret5, type, ext)
+
+  diagram = diagram.map(f => (typeof f === 'number' && f > 12 ? 'X' : f))
+  return { name: chordName, diagram }
+}
+
 export function getRandomChord() {
   const root = ROOTS[Math.floor(Math.random() * ROOTS.length)]
   const type = TYPES[Math.floor(Math.random() * TYPES.length)]
